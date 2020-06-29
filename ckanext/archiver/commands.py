@@ -402,7 +402,7 @@ class Archiver(CkanCommand):
 
             # Iterate over the archive root and check each file by matching the
             # resource_id part of the path to the resources dict
-            for root, _, files in os.walk(archive_root):
+            for root, _, files in os.walk(archive_root): #TODO: change to ckan core meta so s3 resource get works.
                 for filename in files:
                     archived_path = os.path.join(root, filename)
                     m = uuid_re.match(archived_path)
@@ -532,7 +532,7 @@ class Archiver(CkanCommand):
             else:
                 print 'File: "%s" -> "%s"' % (old_path, new_path)
                 try:
-                    shutil.move(old_path, new_path)
+                    shutil.move(old_path, new_path) #TODO: change to ckan core store
                 except IOError, e:
                     print 'ERROR moving resource: %s' % e
                     continue

@@ -596,7 +596,7 @@ def archive_resource(context, resource, log, result=None, url_timeout=30):
 
     # move the temp file to the resource's archival directory
     saved_file = os.path.join(archive_dir, file_name)
-    shutil.move(result['saved_file'], saved_file)
+    shutil.move(result['saved_file'], saved_file) #TODO: change to ckan core store
     log.info('Going to do chmod: %s', saved_file)
     try:
         os.chmod(saved_file, 0644)  # allow other users to read it
