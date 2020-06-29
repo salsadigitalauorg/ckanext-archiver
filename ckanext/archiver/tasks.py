@@ -596,13 +596,19 @@ def archive_resource(context, resource, log, result=None, url_timeout=30):
 
     # move the temp file to the resource's archival directory
     saved_file = os.path.join(archive_dir, file_name)
-    shutil.move(result['saved_file'], saved_file) #TODO: change to ckan core store
-    log.info('Going to do chmod: %s', saved_file)
-    try:
-        os.chmod(saved_file, 0644)  # allow other users to read it
-    except Exception, e:
-        log.error('chmod failed %s: %s', saved_file, e)
-        raise
+
+    #Get and uploader, set the fields required to upload and upload up.
+    upload = uploader.get_uploader(archive_dir, file_name)
+    upload.upload_file(result['saved_file'])
+    upload.upload(result['size'])
+
+    # shutil.move(result['saved_file'], saved_file) #TODO: change to ckan core store
+    # log.info('Going to do chmod: %s', saved_file)
+    # try:
+    #     os.chmod(saved_file, 0644)  # allow other users to read it
+    # except Exception, e:
+    #     log.error('chmod failed %s: %s', saved_file, e)
+    #     raise
     log.info('Archived resource as: %s', saved_file)
 
     # calculate the cache_url
