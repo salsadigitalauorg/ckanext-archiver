@@ -1,5 +1,6 @@
 import logging
 
+from routes.mapper import SubMapper
 from ckan import model
 from ckan import plugins as p
 
@@ -10,6 +11,9 @@ from ckanext.archiver import helpers
 from ckanext.archiver import lib
 from ckanext.archiver.model import Archival, aggregate_archivals_for_a_dataset
 
+import ckantoolkit as toolkit
+
+config = toolkit.config
 log = logging.getLogger(__name__)
 
 
@@ -26,6 +30,7 @@ class ArchiverPlugin(p.SingletonPlugin, p.toolkit.DefaultDatasetForm):
     p.implements(p.IAuthFunctions)
     p.implements(p.ITemplateHelpers)
     p.implements(p.IPackageController, inherit=True)
+    p.implements(p.IRoutes, inherit=True)
 
     # IDomainObjectModification
 
@@ -205,6 +210,16 @@ class ArchiverPlugin(p.SingletonPlugin, p.toolkit.DefaultDatasetForm):
                 del archival_dict['resource_id']
                 res['archiver'] = archival_dict
 
+    # IRoutes
+
+    def before_map(self, map):
+        cache_url_root = config.get('ckanext-archiver.cache_url_root')
+        with SubMapper(map, controller='ckanext.archiver.controller:ArchiverController') as m:
+            # Add the archive download links
+            m.connect('archive_download',
+                      cache_url_root + '/dataset/{id}/resource/{resource_id}/archive/{filename}',
+                      action='archive_download')
+        return map
 
 class TestIPipePlugin(p.SingletonPlugin):
     """
