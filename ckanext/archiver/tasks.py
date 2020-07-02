@@ -20,9 +20,11 @@ from ckan.common import _
 from ckan.lib import uploader
 from ckan import plugins as p
 from ckanext.archiver import interfaces as archiver_interfaces
+import ckantoolkit as toolkit
 
 import logging
 
+config = toolkit.config
 log = logging.getLogger(__name__)
 
 toolkit = p.toolkit
@@ -594,25 +596,34 @@ def archive_resource(context, resource, log, result=None, url_timeout=30):
     except Exception:
         file_name = "resource"
 
-    # move the temp file to the resource's archival directory
-    saved_file = os.path.join(archive_dir, file_name)
-    shutil.move(result['saved_file'], saved_file)
-    log.info('Going to do chmod: %s', saved_file)
-    try:
-        os.chmod(saved_file, 0644)  # allow other users to read it
-    except Exception, e:
-        log.error('chmod failed %s: %s', saved_file, e)
-        raise
-    log.info('Archived resource as: %s', saved_file)
+    # Get and uploader, set the fields required to upload and upload up.
+    saved_file =  '/archive/' + file_name
+    saved_file_internal = resource['id'] + saved_file
+    upload = uploader.get_uploader('resources', saved_file_internal)
+    upload.upload_file(result['saved_file'])
+    upload.upload(result['size'])
+
+    cache_url = urlparse.urljoin(config.get('ckan.site_url', ''),
+                                 '/dataset/%s/resource/%s/download/%s' % resource['package_id'], resource['id'], saved_file )
+    ### move the temp file to the resource's archival directory
+    ##saved_file = os.path.join(archive_dir, file_name)
+    ##shutil.move(result['saved_file'], saved_file)
+    ##log.info('Going to do chmod: %s', saved_file)
+    ##try:
+    ##    os.chmod(saved_file, 0644)  # allow other users to read it
+    ##except Exception, e:
+    ##    log.error('chmod failed %s: %s', saved_file, e)
+    ##    raise
+    ##log.info('Archived resource as: %s', saved_file)
 
     # calculate the cache_url
-    if not context.get('cache_url_root'):
-        log.warning('Not saved cache_url because no value for '
-                    'ckanext-archiver.cache_url_root in config')
-        raise ArchiveError(_('No value for ckanext-archiver.cache_url_root in config'))
-    cache_url = urlparse.urljoin(context['cache_url_root'],
-                                 '%s/%s' % (relative_archive_path, file_name))
-    return {'cache_filepath': saved_file,
+    ##if not context.get('cache_url_root'):
+    ##    log.warning('Not saved cache_url because no value for '
+    ##                'ckanext-archiver.cache_url_root in config')
+    ##    raise ArchiveError(_('No value for ckanext-archiver.cache_url_root in config'))
+    ##cache_url = urlparse.urljoin(context['cache_url_root'],
+    ##                             '%s/%s' % (relative_archive_path, file_name))
+    return {'cache_filepath': saved_file_internal,
             'cache_url': cache_url}
 
 
