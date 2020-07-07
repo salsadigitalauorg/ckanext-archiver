@@ -310,7 +310,7 @@ def _update_resource(ckan_ini_filepath, resource_id, queue, log):
                 return
 
             mimetype = None
-            headers = None
+            headers = {}
             content_type, content_encoding = mimetypes.guess_type(url)
             if content_type:
                 mimetype = _clean_content_type(content_type)
